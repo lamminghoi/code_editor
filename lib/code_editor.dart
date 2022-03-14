@@ -110,7 +110,7 @@ class _CodeEditorState extends State<CodeEditor> {
   /// Set the cursor at the end of the editableText.
   void placeCursorAtTheEnd() {
     editingController.selection = TextSelection.fromPosition(
-      TextPosition(offset: editingController.text.length),
+      TextPosition(offset: 0),
     );
   }
 
@@ -162,9 +162,7 @@ class _CodeEditorState extends State<CodeEditor> {
           letterSpacing: 1.0,
           fontWeight: FontWeight.normal,
           fontSize: opt?.fontSizeOfFilename,
-          color: isSelected
-              ? opt?.editorFilenameColor
-              : opt?.editorFilenameColor.withOpacity(0.5),
+          color: isSelected ? opt?.editorFilenameColor : opt?.editorFilenameColor.withOpacity(0.5),
         ),
       );
     }
@@ -176,8 +174,7 @@ class _CodeEditorState extends State<CodeEditor> {
         height: 60,
         decoration: BoxDecoration(
           color: opt?.editorColor,
-          border: Border(
-              bottom: BorderSide(color: opt?.editorBorderColor ?? Colors.blue)),
+          border: Border(bottom: BorderSide(color: opt?.editorBorderColor ?? Colors.blue)),
         ),
         child: ListView.builder(
           padding: EdgeInsets.only(left: 15),
@@ -240,7 +237,12 @@ class _CodeEditorState extends State<CodeEditor> {
         return Positioned(
           bottom: opt?.editButtonPosBottom,
           right: opt?.editButtonPosRight,
-          top: (model.isEditing && opt != null && opt.editButtonPosTop != null && opt.editButtonPosTop! < 50) ? 50 : opt?.editButtonPosTop,
+          top: (model.isEditing &&
+                  opt != null &&
+                  opt.editButtonPosTop != null &&
+                  opt.editButtonPosTop! < 50)
+              ? 50
+              : opt?.editButtonPosTop,
           left: opt?.editButtonPosLeft,
           child: ElevatedButton(
             style: ElevatedButton.styleFrom(
@@ -262,141 +264,9 @@ class _CodeEditorState extends State<CodeEditor> {
         return SizedBox.shrink();
       }
     }
-
-    /// Add a particular string where the cursor is in the text field.
-    /// * [str] the string to insert
-    /// * [diff] by default, the the cursor is placed after the string placed, but you can change this (Exemple: -1 for "" placed)
-    void insertIntoTextField(String str, {int diff = 0}) {
-      // get the position of the cursor in the text field
-      int pos = editingController.selection.baseOffset;
-      // get the current text of the text field
-      String baseText = editingController.text;
-      // get the string : 0 -> pos of the current text and add the wanted string
-      String begin = baseText.substring(0, pos) + str;
-      // if we are already in the end of the string
-      if (baseText.length == pos) {
-        editingController.text = begin;
-      } else {
-        // get the end of the string and update the text of the text field
-        String end = baseText.substring(pos, baseText.length);
-        editingController.text = begin + end;
-      }
-      // if we don't do this, when we click on a toolbutton, the method
-      // onChanged() isn't called, so newValue isn't updated
-      newValue = editingController.text;
-      placeCursor(pos + str.length + diff);
-    }
-
-    /// Creates the toolbar.
-    Widget toolBar() {
-      List<ToolButton> toolButtons = [
-        ToolButton(
-          press: () => insertIntoTextField("\t"),
-          icon: FontAwesomeIcons.indent,
-        ),
-        ToolButton(
-          press: () => insertIntoTextField("<"),
-          icon: FontAwesomeIcons.chevronLeft,
-        ),
-        ToolButton(
-          press: () => insertIntoTextField(">"),
-          icon: FontAwesomeIcons.chevronRight,
-        ),
-        ToolButton(
-          press: () => insertIntoTextField('""', diff: -1),
-          icon: FontAwesomeIcons.quoteLeft,
-        ),
-        ToolButton(
-          press: () => insertIntoTextField(":"),
-          symbol: ":",
-        ),
-        ToolButton(
-          press: () => insertIntoTextField(";"),
-          symbol: ";",
-        ),
-        ToolButton(
-          press: () => insertIntoTextField('()', diff: -1),
-          symbol: "()",
-        ),
-        ToolButton(
-          press: () => insertIntoTextField('{}', diff: -1),
-          symbol: "{}",
-        ),
-        ToolButton(
-          press: () => insertIntoTextField('[]', diff: -1),
-          symbol: "[]",
-        ),
-        ToolButton(
-          press: () => insertIntoTextField("-"),
-          icon: FontAwesomeIcons.minus,
-        ),
-        ToolButton(
-          press: () => insertIntoTextField("="),
-          icon: FontAwesomeIcons.equals,
-        ),
-        ToolButton(
-          press: () => insertIntoTextField("+"),
-          icon: FontAwesomeIcons.plus,
-        ),
-        ToolButton(
-          press: () => insertIntoTextField("/"),
-          icon: FontAwesomeIcons.divide,
-        ),
-        ToolButton(
-          press: () => insertIntoTextField("*"),
-          icon: FontAwesomeIcons.times,
-        ),
-      ];
-
-      return Container(
-        height: 50,
-        width: double.infinity,
-        decoration: BoxDecoration(
-          color: opt?.editorColor,
-          border: Border(
-              bottom: BorderSide(color: opt?.editorBorderColor ?? Colors.blue)),
-        ),
-        child: ListView.builder(
-          padding: EdgeInsets.only(left: 15, top: 8, bottom: 8),
-          itemCount: toolButtons.length,
-          scrollDirection: Axis.horizontal,
-          itemBuilder: (context, int index) {
-            final ToolButton btn = toolButtons[index];
-
-            return Container(
-              width: 55,
-              margin: EdgeInsets.only(right: 15), // == padding right above
-              child: TextButton(
-                style: TextButton.styleFrom(
-                  backgroundColor: opt?.editorToolButtonColor,
-                ),
-                onPressed: btn.press as void Function()?,
-                child: btn.icon == null
-                    ? Text(
-                        btn.symbol ?? "",
-                        style: TextStyle(
-                          color: opt?.editorToolButtonTextColor,
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                          fontFamily: "monospace",
-                        ),
-                      )
-                    : FaIcon(
-                        btn.icon,
-                        color: opt?.editorToolButtonTextColor,
-                        size: 15,
-                      ),
-              ),
-            );
-          },
-        ),
-      );
-    }
-
     // We place the cursor in the end of the text field.
 
-    if (model.isEditing &&
-        (model.styleOptions?.placeCursorAtTheEndOnEdit ?? true)) {
+    if (model.isEditing && (model.styleOptions?.placeCursorAtTheEndOnEdit ?? true)) {
       placeCursorAtTheEnd();
     }
 
@@ -407,14 +277,11 @@ class _CodeEditorState extends State<CodeEditor> {
               children: <Widget>[
                 Column(
                   children: <Widget>[
-                    // the toolbar
-                    toolBar(),
                     // Container of the EditableText
                     Container(
                       width: double.infinity,
                       height: opt?.heightOfContainer,
                       decoration: BoxDecoration(
-                        color: Colors.white,
                         border: Border(
                           bottom: BorderSide(
                             color: opt?.editorBorderColor.withOpacity(0.4) ??
